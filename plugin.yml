@@ -1,0 +1,96 @@
+name: SexyMotd
+version: 1.0
+author: victor2748
+main: net.pixelizedmc.sexymotd.Main
+depend: [ProtocolLib]
+commands:
+  motd:
+    description: Main SexyMotd Command
+    aliases: [smotd, sexymotd]
+permissions:
+  sexymotd.admin:
+    default: op
+    children:
+      sexymotd.motd.*: true
+      sexymotd.toggle: true
+      sexymotd.maxplayers.*: true
+      sexymotd.players.*: true
+      sexymotd.avataricon: true
+      sexymotd.info: true
+      sexymotd.update.*: true
+      sexymotd.playermsg.*: true
+  sexymotd.*:
+    default: op
+    children:
+      sexymotd.motd.*: true
+      sexymotd.toggle: true
+      sexymotd.maxplayers.*: true
+      sexymotd.players.*: true
+      sexymotd.avataricon: true
+      sexymotd.info: true
+      sexymotd.update.*: true
+      sexymotd.playermsg.*: true
+  sexymotd.motd.*:
+    default: op
+    children:
+      sexymotd.motd.set: true
+      sexymotd.motd.see: true
+      sexymotd.motd.toggle: true
+  sexymotd.maxplayers.*:
+    default: op
+    children:
+      sexymotd.maxplayers.set: true
+      sexymotd.maxplayers.toggle: true
+  sexymotd.players.*:
+    default: op
+    children:
+      sexymotd.players.set: true
+      sexymotd.players.toggle: true
+  sexymotd.playermsg.*:
+    default: op
+    children:
+      sexymotd.playermsg.toggle: true
+      sexymotd.playermsg.add: true
+      sexymotd.playermsg.remove: true
+      sexymotd.playermsg.see: true
+  sexymotd.update.*:
+    default: op
+    children:
+      sexymotd.update.perform: true
+      sexymotd.update.check: true
+      sexymotd.update.notify: true
+  sexymotd.motd.set:
+    description: Permission to change the motd
+  sexymotd.motd.toggle:
+    description: Permission to toggle the motd
+  sexymotd.motd.see:
+    description: Permission to see the motd
+  sexymotd.playermsg.toggle:
+    description: Permission to toggle PlayerMessage
+  sexymotd.playermsg.add:
+    description: Permission to add lines to PlayerMessage
+  sexymotd.playermsg.remove:
+    description: Permission to remove lines from PlayerMessage
+  sexymotd.playermsg.see:
+    description: Permission to see PlayerMessage
+  sexymotd.update.perform:
+    description: Permission to perfrom an update
+  sexymotd.update.check:
+    description: Permission to check for updates
+  sexymotd.update.notify:
+    description: Permission to see update noitifications
+  sexymotd.toggle:
+    description: Permission to toggle the plugin
+  sexymotd.maxplayers.toggle:
+    description: Permission to toggle maxplayers
+  sexymotd.maxplayers.set:
+    description: Permission to change the maxplayers
+  sexymotd.players.toggle:
+    description: Permission to toggle fakeplayers
+  sexymotd.players.set:
+    description: Permission to change fakeplayers
+  sexymotd.avataricon:
+    description: Permission to toggle the avataricon
+  sexymotd.info:
+    description: Permission to display the info
+    default: true
