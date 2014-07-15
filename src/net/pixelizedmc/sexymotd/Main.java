@@ -4,7 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 import java.util.logging.Logger;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -14,6 +17,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.server.ServerListPingEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.ListenerOptions;
@@ -67,7 +71,7 @@ public class Main extends JavaPlugin implements Listener {
 		
 		// Extract image
 		if (CM.ENABLE_OVERLAY_IMAGE) {
-			if (!CM.OVERLAY_IMAGE_URL) {
+			if (!CM.OVERLAY_IMAGE_PATH.contains("http://")) {
 				File img = new File(CM.OVERLAY_IMAGE_PATH);
 				if (!img.exists()) {
 					CM.OVERLAY_IMAGE_PATH = "plugins/SexyMotd/SexyImage.png";
@@ -95,17 +99,25 @@ public class Main extends JavaPlugin implements Listener {
 					WrappedServerPing ping = e.getPacket().getServerPings().read(0);
 					InetAddress address = e.getPlayer().getAddress().getAddress();
 					if (CM.ENABLE_MOTD) {
-						ping.setMotD(Utils.generateMotd(CM.MOTD, address));
+						ping.setMotD(Utils.generateMotd(CM.MOTDS.get(new Random().nextInt(CM.MOTDS.size())), address));
 					}
 					if (CM.ENABLE_PLAYER_MESSAGE) {
 						ping.setPlayers(Utils.getMessage(CM.PLAYER_MESSAGE, address));
 					}
 					if (CM.ENABLE_FAKE_PLAYERS) {
-						ping.setPlayersOnline(CM.FAKE_PLAYERS);
+						ping.setPlayersOnline(CM.FAKE_PLAYERS.get(new Random().nextInt(CM.FAKE_PLAYERS.size())));
 					}
 					if (CM.ENABLE_FAKE_MAX_PLAYERS) {
 						ping.setPlayersMaximum(CM.FAKE_MAX_PLAYERS);
 					}
+					if (CM.ENABLE_FAKE_VERSION) {
+						ping.setVersionName(CM.FAKE_VERSION);
+						if (CM.ENABLE_PROTOCOL_OVERRIDE) {
+							ping.setVersionProtocol((byte)-1);
+						}
+					}
+					
+					
 				}
 				
 			});

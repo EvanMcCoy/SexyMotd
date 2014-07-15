@@ -1,7 +1,9 @@
 package net.pixelizedmc.sexymotd;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -12,13 +14,13 @@ import org.bukkit.command.CommandSender;
 
 public class Commands implements CommandExecutor {
 	public boolean onCommand(CommandSender sender, Command c, String cmd, String[] args) {
-		if (cmd.equalsIgnoreCase("motd")||cmd.equalsIgnoreCase("servermotd")||cmd.equalsIgnoreCase("slm")) {
+		if (c.getName().equalsIgnoreCase("motd")) {
 			if (args.length == 0) {
 				printHelp(sender);
 			} else {
-				if (args[0].equalsIgnoreCase("setmotd")) {
+				if (args[0].equalsIgnoreCase("addmotd")) {
 					if (!sender.hasPermission("sexymotd.motd.set")) {
-						Utils.sendError(sender, "You dont have permission!");
+						Utils.sendError(sender, "You don't have permission!");
 						return true;
 					}
 					if (args.length > 1) {
@@ -27,24 +29,47 @@ public class Commands implements CommandExecutor {
 							listmotd.add(args[i]);
 						}
 						String motd = StringUtils.join(listmotd, ' ');
-						CM.config.set("Motd", motd);
-						CM.save();
+						CM.RAWMOTDS.add(motd);
 						motd = ChatColor.translateAlternateColorCodes('&', motd);
-						CM.RAWMOTD = motd;
-						Utils.sendMessage(sender, "Your motd is now: " + ChatColor.RESET + motd);
+						Utils.sendMessage(sender, "You have added the Motd: " + ChatColor.RESET + motd);
 						motd = motd.replaceFirst("%newline%", "\n");
 						motd = motd.replaceAll("%servername%", Bukkit.getServerName());
 						String ver = Bukkit.getServer().getVersion();
 						ver = ver.split("\\(")[1];
 						ver = ver.substring(4, ver.length() - 1);
 						motd = motd.replaceAll("%version%", ver);
-						CM.MOTD = motd;
+						CM.MOTDS.add(motd);
+						CM.config.set("Motd", CM.MOTDS);
+						CM.save();
 					} else {
-						Utils.sendError(sender, "Usage: " + ChatColor.RED + "/motd setmotd <motd>");
+						Utils.sendError(sender, "Usage: " + ChatColor.RED + "/motd addmotd <motd>");
+					}
+				} else if (args[0].equalsIgnoreCase("removemotd")) {
+					if (!sender.hasPermission("sexymotd.motd.set")) {
+						Utils.sendError(sender, "You don't have permission!");
+						return true;
+					}
+					if (args.length < 2) {
+						Utils.sendError(sender, "Usage: " + ChatColor.RED + "/motd removemotd <index>");
+						return true;
+					}
+					int index = Integer.parseInt(args[1]);
+					Utils.sendMessage(sender, "You have removed the Motd: " + ChatColor.RESET + CM.MOTDS.get(index));
+					CM.RAWMOTDS.remove(index);
+					CM.MOTDS.remove(index);
+					CM.config.set("Motd", CM.MOTDS);
+					CM.save();
+				} else if (args[0].equalsIgnoreCase("listmotds")) {
+					if (!sender.hasPermission("sexymotd.motd.see")) {
+						Utils.sendError(sender, "You don't have permission!");
+						return true;
+					}
+					for (String motd : CM.MOTDS) {
+						sender.sendMessage(ChatColor.GOLD + ((Integer)CM.MOTDS.indexOf(motd)).toString() + ": " + ChatColor.RESET + motd);
 					}
 				} else if (args[0].equalsIgnoreCase("togglemotd")) {
 					if (!sender.hasPermission("sexymotd.motd.toggle")) {
-						Utils.sendError(sender, "You dont have permission!");
+						Utils.sendError(sender, "You don't have permission!");
 						return true;
 					}
 					if (args.length > 1) {
@@ -62,19 +87,9 @@ public class Commands implements CommandExecutor {
 							Utils.sendMessage(sender, "Motd is now " + ChatColor.GREEN + "ENABLED");
 						}
 					}
-				} else if (args[0].equalsIgnoreCase("seemotd")) {
-					if (!sender.hasPermission("sexymotd.motd.see")) {
-						Utils.sendError(sender, "You dont have permission!");
-						return true;
-					}
-					if (args.length > 1) {
-						Utils.sendError(sender, "Usage: " + ChatColor.RED + "/motd see");
-					} else {
-						Utils.sendMessage(sender, "The MOTD is: " + ChatColor.RESET + CM.RAWMOTD);
-					}
 				} else if (args[0].equalsIgnoreCase("toggle")) {
 					if (!sender.hasPermission("sexymotd.toggle")) {
-						Utils.sendError(sender, "You dont have permission!");
+						Utils.sendError(sender, "You don't have permission!");
 						return true;
 					}
 					if (args.length > 1) {
@@ -94,12 +109,11 @@ public class Commands implements CommandExecutor {
 					}
 				} else if (args[0].equalsIgnoreCase("players")) {
 					if (args.length == 1) {
-						Utils.sendError(sender, "Usage: " + ChatColor.RED + "/motd players toggle");
-						Utils.sendError(sender, "Usage: " + ChatColor.RED + "/motd players set <number>");
+						this.sendPlayerCommandUsage(sender);
 					} else {
 						if (args[1].equalsIgnoreCase("toggle")) {
 							if (!sender.hasPermission("sexymotd.players.toggle")) {
-								Utils.sendError(sender, "You dont have permission!");
+								Utils.sendError(sender, "You don't have permission!");
 								return true;
 							}
 							if (args.length == 2) {
@@ -115,31 +129,46 @@ public class Commands implements CommandExecutor {
 									Utils.sendMessage(sender, "FakePlayers are now " + ChatColor.GREEN + "ENABLED");
 								}
 							} else {
-								Utils.sendError(sender, "Usage: " + ChatColor.RED + "/motd players toggle");
-								Utils.sendError(sender, "Usage: " + ChatColor.RED + "/motd players set <number>");
+								this.sendPlayerCommandUsage(sender);
 							}
-						} else if (args[1].equalsIgnoreCase("set")) {
+						} else if (args[1].equalsIgnoreCase("add")) {
 							if (!sender.hasPermission("sexymotd.players.set")) {
-								Utils.sendError(sender, "You dont have permission!");
+								Utils.sendError(sender, "You don't have permission!");
 								return true;
 							}
 							if (args.length == 3) {
 								if (Utils.isInteger(args[2])) {
 									int players = Integer.parseInt(args[2]);
-									CM.FAKE_PLAYERS = players;
-									CM.config.set("FakePlayers.Players", players);
+									CM.FAKE_PLAYERS.add(players);
+									CM.config.set("FakePlayers.Players", CM.FAKE_PLAYERS);
 									CM.save();
-									Utils.sendMessage(sender, "FakePlayers is now set to: " + ChatColor.DARK_GREEN + args[2]);
+									Utils.sendMessage(sender, "Added to FakePlayers: " + ChatColor.DARK_GREEN + args[2]);
 								} else {
 									Utils.sendError(sender, args[2] + ChatColor.RED + " is not a number");
 								}
 							} else {
-								Utils.sendError(sender, "Usage: " + ChatColor.RED + "/motd players toggle");
-								Utils.sendError(sender, "Usage: " + ChatColor.RED + "/motd players set <number>");
+								this.sendPlayerCommandUsage(sender);
+							}
+						} else if (args[1].equalsIgnoreCase("remove")) {
+							if (!sender.hasPermission("sexymotd.players.set")) {
+								Utils.sendError(sender, "You don't have permission!");
+								return true;
+							}
+							if (args.length == 3) {
+								int index = Integer.parseInt(args[2]);
+								Utils.sendMessage(sender, "Removed from FakePlayers: " + ChatColor.DARK_GREEN + CM.FAKE_PLAYERS.get(index));
+								CM.FAKE_PLAYERS.remove(index);
+								CM.save();
+							}
+							else {
+								this.sendPlayerCommandUsage(sender);
+							}
+						} else if (args[1].equalsIgnoreCase("list")) {
+							for (Integer players : CM.FAKE_PLAYERS) {
+								sender.sendMessage(ChatColor.GOLD + ((Integer)CM.FAKE_PLAYERS.indexOf(players)).toString() + ": " + ChatColor.DARK_GREEN + players.toString());
 							}
 						} else {
-							Utils.sendError(sender, "Usage: " + ChatColor.RED + "/motd players toggle");
-							Utils.sendError(sender, "Usage: " + ChatColor.RED + "/motd players set <number>");
+							this.sendPlayerCommandUsage(sender);
 						}
 					}
 				} else if (args[0].equalsIgnoreCase("maxplayers")) {
@@ -149,7 +178,7 @@ public class Commands implements CommandExecutor {
 					} else {
 						if (args[1].equalsIgnoreCase("toggle")) {
 							if (!sender.hasPermission("sexymotd.maxplayers.toggle")) {
-								Utils.sendError(sender, "You dont have permission!");
+								Utils.sendError(sender, "You don't have permission!");
 								return true;
 							}
 							if (args.length == 2) {
@@ -170,7 +199,7 @@ public class Commands implements CommandExecutor {
 							}
 						} else if (args[1].equalsIgnoreCase("set")) {
 							if (!sender.hasPermission("sexymotd.maxplayers.set")) {
-								Utils.sendError(sender, "You dont have permission!");
+								Utils.sendError(sender, "You don't have permission!");
 								return true;
 							}
 							if (args.length == 3) {
@@ -203,7 +232,7 @@ public class Commands implements CommandExecutor {
 					} else {
 						if (args[1].equalsIgnoreCase("toggle")) {
 							if (!sender.hasPermission("sexymotd.playermsg.toggle")) {
-								Utils.sendError(sender, "You dont have permission!");
+								Utils.sendError(sender, "You don't have permission!");
 								return true;
 							}
 							if (args.length == 2) {
@@ -226,7 +255,7 @@ public class Commands implements CommandExecutor {
 							}
 						} else if (args[1].equalsIgnoreCase("add")) {
 							if (!sender.hasPermission("sexymotd.playermsg.add")) {
-								Utils.sendError(sender, "You dont have permission!");
+								Utils.sendError(sender, "You don't have permission!");
 								return true;
 							}
 							if (args.length > 2) {
@@ -236,7 +265,7 @@ public class Commands implements CommandExecutor {
 								}
 								String msg = StringUtils.join(m, ' ');
 								CM.RAW_PLAYER_MESSAGE.add(0, msg);
-								CM.PLAYER_MESSAGE.add(0, CM.parseMotd(msg));
+								CM.PLAYER_MESSAGE.add(0, CM.parseMotd(Arrays.asList(msg)).get(0));
 								CM.config.set("PlayerMessage.Message", CM.RAW_PLAYER_MESSAGE);
 								CM.save();
 								Utils.sendMessage(sender, "Added line \"" + ChatColor.WHITE + ChatColor.translateAlternateColorCodes('&', msg) + ChatColor.YELLOW + "\" to PlayerMessage");
@@ -248,7 +277,7 @@ public class Commands implements CommandExecutor {
 							}
 						} else if (args[1].equalsIgnoreCase("remove")) {
 							if (!sender.hasPermission("sexymotd.playermsg.remove")) {
-								Utils.sendError(sender, "You dont have permission!");
+								Utils.sendError(sender, "You don't have permission!");
 								return true;
 							}
 							if (args.length == 3) {
@@ -274,7 +303,7 @@ public class Commands implements CommandExecutor {
 							}
 						} else if (args[1].equalsIgnoreCase("see")) {
 							if (!sender.hasPermission("sexymotd.playermsg.see")) {
-								Utils.sendError(sender, "You dont have permission!");
+								Utils.sendError(sender, "You don't have permission!");
 								return true;
 							}
 							if (args.length == 2) {
@@ -299,7 +328,7 @@ public class Commands implements CommandExecutor {
 					}
 				} else if (args[0].equalsIgnoreCase("avataricon")) {
 					if (!sender.hasPermission("sexymotd.avataricon")) {
-						Utils.sendError(sender, "You dont have permission!");
+						Utils.sendError(sender, "You don't have permission!");
 						return true;
 					}
 					if (args.length == 1) {
@@ -321,7 +350,7 @@ public class Commands implements CommandExecutor {
 					printHelp(sender);
 				} else if (args[0].equalsIgnoreCase("info")) {
 					if (!sender.hasPermission("sexymotd.info")) {
-						Utils.sendError(sender, "You dont have permission!");
+						Utils.sendError(sender, "You don't have permission!");
 						return true;
 					}
 					if (args.length == 1) {
@@ -355,7 +384,7 @@ public class Commands implements CommandExecutor {
     			else if (args[0].equalsIgnoreCase("update")) {
     				
     				if (!sender.hasPermission("sexymotd.update.perform")) {
-    					Utils.sendError(sender, "You dont have permission!");
+    					Utils.sendError(sender, "You don't have permission!");
     					return true;
     				}
     				if (args.length <= 1) {
@@ -374,7 +403,7 @@ public class Commands implements CommandExecutor {
     			else if (args[0].equalsIgnoreCase("check")) {
     				
     				if (!sender.hasPermission("sexymotd.update.check")) {
-    					Utils.sendError(sender, "You dont have permission!");
+    					Utils.sendError(sender, "You don't have permission!");
     					return true;
     				}
     				if (args.length <= 1) {
@@ -389,7 +418,26 @@ public class Commands implements CommandExecutor {
     				} else {
     					sender.sendMessage(ChatColor.DARK_RED + "Usage: " + ChatColor.RED + "/bm check");
     				}
-    			} else {
+    			} 
+    			else if (args[0].equalsIgnoreCase("reload")) {
+    				if (!sender.hasPermission("sexymotd.reload")) {
+    					Utils.sendError(sender, "Your do not have permission to reload!");
+    					return true;
+    				}
+    				IpList.reload();
+    				CM.reload();
+    				sender.sendMessage(ChatColor.GREEN + "SexyMotd has reloaded!");
+    			} 
+    			else if (args[0].equalsIgnoreCase("restart")) {
+    				if (!sender.hasPermission("sexymotd.restart")) {
+    					Utils.sendError(sender, "You do not have permission to restart SexyMotd!");
+    					return true;
+    				}
+    				Main.getInstance().getServer().getPluginManager().disablePlugin(Main.getInstance());
+    				Main.getInstance().getServer().getPluginManager().enablePlugin(Main.getInstance());
+    				sender.sendMessage(ChatColor.GREEN + "SexyMotd has restarted!");
+    			}
+    			else {
     				printHelp(sender);
     			}
 			}
@@ -440,5 +488,18 @@ public class Commands implements CommandExecutor {
 		if (sender.hasPermission("sexymotd.info")) {
 			sender.sendMessage(ChatColor.YELLOW + "/motd info " + ChatColor.RED + "-" + ChatColor.RESET + " displays the info");
 		}
+		if (sender.hasPermission("sexymotd.reload")) {
+			sender.sendMessage(ChatColor.YELLOW + "/motd reload" + ChatColor.RED + "-" + ChatColor.RESET + " reloads SexyMotd.");
+		}
+		if (sender.hasPermission("sexymotd.restart")) {
+			sender.sendMessage(ChatColor.YELLOW + "/motd reload" + ChatColor.RED + "-" + ChatColor.RESET + " restarts SexyMotd.");
+		}
+	}
+	
+	public void sendPlayerCommandUsage(CommandSender sender) {
+		Utils.sendError(sender, "Usage: " + ChatColor.RED + "/motd players toggle");
+		Utils.sendError(sender, "Usage: " + ChatColor.RED + "/motd players add <number>");
+		Utils.sendError(sender, "Usage: " + ChatColor.RED + "/motd players remove <index>");
+		Utils.sendError(sender, "Usage: " + ChatColor.RED + "/motd players list");
 	}
 }

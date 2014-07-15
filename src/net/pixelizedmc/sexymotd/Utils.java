@@ -80,7 +80,7 @@ public class Utils {
 			String player = IpList.config.getString(ip);
 			BufferedImage icon = null;
 			try {
-				icon = ImageIO.read(new URL("https://minotar.net/avatar/" + player + "/64.png"));
+				icon = ImageIO.read(new URL("https://minotar.net/helm/" + player + "/64.png"));
 			} catch (IOException e) {
 				
 			}
@@ -88,7 +88,7 @@ public class Utils {
 				File image = new File(CM.OVERLAY_IMAGE_PATH);
 				if (image.exists()) {
 					Image overlay = null;
-					if (CM.OVERLAY_IMAGE_URL) {
+					if (CM.OVERLAY_IMAGE_PATH.contains("http://")) {
 						try {
 							overlay = ImageIO.read(new URL(CM.OVERLAY_IMAGE_PATH));
 						} catch (IOException e) {

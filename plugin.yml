@@ -1,5 +1,5 @@
 name: SexyMotd
-version: 1.0
+version: 1.2
 author: victor2748
 main: net.pixelizedmc.sexymotd.Main
 depend: [ProtocolLib]
@@ -19,6 +19,8 @@ permissions:
       sexymotd.info: true
       sexymotd.update.*: true
       sexymotd.playermsg.*: true
+      sexymotd.reload: true
+      sexymotd.restart: true
   sexymotd.*:
     default: op
     children:
@@ -93,4 +95,10 @@ permissions:
     description: Permission to toggle the avataricon
   sexymotd.info:
     description: Permission to display the info
+    default: true
+  sexymotd.reload:
+    description: Gives permission to reload SexyMotd.
+    default: true
+  sexymotd.restart:
+    description: Gives permission to restart SexyMotd.
     default: true
