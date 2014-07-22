@@ -11,10 +11,14 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
+import net.pixelizedmc.sexymotd.Variable.Operator;
+
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.util.CachedServerIcon;
+
+import ru.tehkode.permissions.bukkit.PermissionsEx;
 
 import com.comphenix.protocol.wrappers.WrappedGameProfile;
 
@@ -32,7 +36,7 @@ public class Utils {
     	try {
         	Integer.parseInt(s); 
     	} catch(NumberFormatException e) { 
-    		return false; 
+    		return false;
     	}
     	return true;
     }
@@ -43,18 +47,55 @@ public class Utils {
 	
 	public static String generateMotd(String motd, String address) {
 		String output = motd;
+		String playerName = IpList.config.getString(address);
+		int onlinePlayers = Bukkit.getOnlinePlayers().length;
+		int maxPlayers = Bukkit.getMaxPlayers();
+		List<String> groupNames = PermissionsEx.getPermissionManager().getUser(IpList.config.getString(address)).getParentIdentifiers();
+		
+		for (String variableName : CM.config.getConfigurationSection("variables").getKeys(false)) {
+			Variable variable = new Variable(CM.config.getConfigurationSection("variables." + variableName));
+			if (!motd.toLowerCase().contains(variable.name)) {
+				continue;
+			}
+			if (variable.builtInVariable.contains("%playername%".toLowerCase())) {
+				if (variable.operator == Operator.EQUAL) {
+					if (playerName.equals(variable.condition)) {
+						output = output.replaceAll("(?i)" + variable.name, variable.value);
+					}
+				}
+			}
+			else if (variable.builtInVariable.contains("%online_players%".toLowerCase())) {
+				if (checkNumericCondition(variable, onlinePlayers)) {
+					output = output.replaceAll("(?i)" + variable.name, variable.value);
+				}
+			}
+			else if (variable.builtInVariable.contains("%max_players%".toLowerCase())) {
+				if (checkNumericCondition(variable, maxPlayers)) {
+					output = output.replaceAll("(?i)" + variable.name, variable.value);
+				}
+			}
+			else if (variable.builtInVariable.contains("%groupname%".toLowerCase())) {
+				if (groupNames.contains(variable.condition)) {
+					output = output.replaceAll("(?i)" + variable.name, variable.value);
+				}
+			}
+		}
+		
 		if (motd.toLowerCase().contains("%playername%".toLowerCase())) {
 			if (IpList.config.contains(address)) {
-				output = output.replaceAll("(?i)%playername%", IpList.config.getString(address));
+				output = output.replaceAll("(?i)%playername%", playerName);
 			} else {
 				output = output.replaceAll("(?i)%playername%", CM.DEFAULT_PLAYERNAME);
 			}
 		}
 		if (motd.toLowerCase().contains("%online_players%".toLowerCase())) {
-			output = output.replaceAll("(?i)%online_players%", Integer.toString(Bukkit.getOnlinePlayers().length));
+			output = output.replaceAll("(?i)%online_players%", Integer.toString(onlinePlayers));
 		}
 		if (motd.toLowerCase().contains("%max_players%".toLowerCase())) {
-			output = output.replaceAll("(?i)%max_players%", Integer.toString(Bukkit.getMaxPlayers()));
+			output = output.replaceAll("(?i)%max_players%", Integer.toString(maxPlayers));
+		}
+		if (motd.toLowerCase().contains("%groupname%".toLowerCase())) {
+			output = output.replaceAll("(?i)%groupname%", groupNames.get(0));
 		}
 		return output;
 	}
@@ -121,5 +162,24 @@ public class Utils {
 		} else {
 			return Bukkit.getServerIcon();
 		}
+	}
+	
+	public static boolean checkNumericCondition(Variable variable, int condition) {
+		if (variable.operator == Operator.EQUAL) {
+			if (Integer.parseInt(variable.condition) == condition) {
+				return true;
+			}
+		}
+		else if (variable.operator == Operator.GREATER_THAN) {
+			if (condition > Integer.parseInt(variable.condition)) {
+				return true;
+			}
+		}
+		else if (variable.operator == Operator.LESS_THAN) {
+			if (condition < Integer.parseInt(variable.condition)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
