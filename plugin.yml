@@ -2,6 +2,7 @@ name: SexyMotd
 version: 1.2
 author: victor2748
 main: net.pixelizedmc.sexymotd.Main
+description: Create fancy and dynamic MOTDs easily!
 depend: [ProtocolLib]
 commands:
   motd:

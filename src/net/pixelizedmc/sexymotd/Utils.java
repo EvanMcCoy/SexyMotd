@@ -8,6 +8,7 @@ import java.net.InetAddress;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import javax.imageio.ImageIO;
 
@@ -50,7 +51,13 @@ public class Utils {
 		String playerName = IpList.config.getString(address);
 		int onlinePlayers = Bukkit.getOnlinePlayers().length;
 		int maxPlayers = Bukkit.getMaxPlayers();
-		List<String> groupNames = PermissionsEx.getPermissionManager().getUser(IpList.config.getString(address)).getParentIdentifiers();
+		boolean newplayer = IpList.config.contains(address);
+		boolean banned = Bukkit.getOfflinePlayer(UUID.fromString(IpList.config.getString(address))).isBanned();
+		boolean whitelisted = Bukkit.getOfflinePlayer(UUID.fromString(IpList.config.getString(address))).isWhitelisted();
+		List<String> groupNames = null;
+		if (Bukkit.getServer().getPluginManager().getPlugin("PermissionsEx") != null) {
+			groupNames = PermissionsEx.getPermissionManager().getUser(IpList.config.getString(address)).getParentIdentifiers();
+		}
 		
 		for (String variableName : CM.config.getConfigurationSection("variables").getKeys(false)) {
 			Variable variable = new Variable(CM.config.getConfigurationSection("variables." + variableName));
@@ -74,7 +81,31 @@ public class Utils {
 					output = output.replaceAll("(?i)" + variable.name, variable.value);
 				}
 			}
+			else if (variable.builtInVariable.contains("%newplayer%".toLowerCase())) {
+				if (variable.operator == Operator.EQUAL) {
+					if ((variable.condition.equalsIgnoreCase("true") && newplayer) || (variable.condition.equalsIgnoreCase("false") && !newplayer)) {
+						output = output.replaceAll("(?i)" + variable.name, variable.value);
+					}
+				}
+			}
+			else if (variable.builtInVariable.contains("%banned%".toLowerCase())) {
+				if (variable.operator == Operator.EQUAL) {
+					if ((variable.condition.equalsIgnoreCase("true") && banned) || (variable.condition.equalsIgnoreCase("false") && !banned)) {
+						output = output.replaceAll("(?i)" + variable.name, variable.value);
+					}
+				}
+			}
+			else if (variable.builtInVariable.contains("%whitelisted%".toLowerCase())) {
+				if (variable.operator == Operator.EQUAL) {
+					if ((variable.condition.equalsIgnoreCase("true") && whitelisted) || (variable.condition.equalsIgnoreCase("false") && !whitelisted)) {
+						output = output.replaceAll("(?i)" + variable.name, variable.value);
+					}
+				}
+			}
 			else if (variable.builtInVariable.contains("%groupname%".toLowerCase())) {
+				if (groupNames == null) {
+					continue;
+				}
 				if (groupNames.contains(variable.condition)) {
 					output = output.replaceAll("(?i)" + variable.name, variable.value);
 				}

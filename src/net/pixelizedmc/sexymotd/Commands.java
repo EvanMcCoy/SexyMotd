@@ -354,28 +354,11 @@ public class Commands implements CommandExecutor {
 						return true;
 					}
 					if (args.length == 1) {
-				    	sender.sendMessage(ChatColor.DARK_AQUA + "===" + ChatColor.AQUA + " SexyMotd by the Pixelized Network " + ChatColor.DARK_AQUA + "===");
-				    	sender.sendMessage(ChatColor.YELLOW + "Website: " + ChatColor.GREEN + "http://pixelizedmc.net");
-				    	sender.sendMessage(ChatColor.YELLOW + "Official server: " + ChatColor.GREEN + "play.pixelizedmc.net");
-				    	sender.sendMessage(ChatColor.YELLOW + "Author: " + ChatColor.GREEN + "Victor2748");
+				    	sender.sendMessage(ChatColor.DARK_AQUA + "===" + ChatColor.AQUA + " SexyMotd " + ChatColor.DARK_AQUA + "===");
+				    	sender.sendMessage(ChatColor.YELLOW + "Author: " + ChatColor.GREEN + "Qwertyness");
 				    	sender.sendMessage(ChatColor.YELLOW + "Version: " + ChatColor.GREEN + Main.version);
-				    	sender.sendMessage(ChatColor.YELLOW + "Sexiness: " + ChatColor.GREEN + "Level 80 ;)");
+				    	sender.sendMessage(ChatColor.YELLOW + "Description: " + ChatColor.GREEN + Main.instance.getDescription().getDescription());
 				    	sender.sendMessage(ChatColor.YELLOW + "BukkitDev page: " + ChatColor.GREEN + "http://dev.bukkit.org/bukkit-plugins/sexy-motd/");
-				    	if (CM.ENABLED) {
-					    	Utils.sendMessage(sender, "Enabled: " + ChatColor.GREEN + "true");
-				    	} else {
-				    		Utils.sendMessage(sender, "Enabled: " + ChatColor.RED + "false");
-				    	}
-				    	if (CM.ENABLE_AVATAR_ICON) {
-				    		Utils.sendMessage(sender, "AvatarIcon: " + ChatColor.GREEN + "true");
-				    	} else {
-				    		Utils.sendMessage(sender, "AvatarIcon: " + ChatColor.RED + "false");
-				    	}
-				    	if (CM.ENABLE_FAKE_MAX_PLAYERS) {
-				    		Utils.sendMessage(sender, "MaxPlayers: " + ChatColor.GREEN + "true");
-				    	} else {
-				    		Utils.sendMessage(sender, "MaxPlayers: " + ChatColor.RED + "false");
-				    	}
 					} else {
 						Utils.sendError(sender, "Usage: " + ChatColor.RED + "/motd info");
 					}
