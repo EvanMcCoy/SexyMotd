@@ -41,7 +41,7 @@ public class CM {
         config.addDefault("Enabled", true);
         config.addDefault("CheckUpdates", true);
         config.addDefault("Motd.Enabled", true);
-        config.addDefault("Motd.Motd", Arrays.asList("&6Hello, &e&l%playername%&6!%newline%&6Welcome to &4&l%servername%&6!", "A random MOTD!"));
+        config.addDefault("Motd.Motd", Arrays.asList("'&6Hello, &e&l%playername%&6! %isnewplayer%%newline%&aGroup Name&r; &b%groupname%", "A random MOTD!"));
         config.addDefault("FakePlayers.Enabled", true);
         config.addDefault("FakePlayers.Players", Arrays.asList(-125, 4, 100));
         config.addDefault("FakeMaxPlayers.Enabled", true);
@@ -59,11 +59,16 @@ public class CM {
         msg.add("&b=============== &e%servername%&b ===============");
         msg.add("&4&lWelcome, &e&l%playername%&4&l!");
         msg.add("&b============================================");
-        msg.add("&rWebsite: &ahttp://pixelizedmc.net");
-        msg.add("&rIP: &aplay.pixelizedmc.net");
+        msg.add("&rWebsite: &ahttp://qwertyness.com");
         msg.add("&rOnline: &a%online_players%/%max_players%");
         msg.add("&rVersion: &a%version%");
         config.addDefault("PlayerMessage.Message", msg);
+        
+        config.addDefault("variables.isnewplayer.variable", "newplayer");
+        config.addDefault("variables.isnewplayer.operator", "=");
+        config.addDefault("variables.isnewplayer.condition", "true");
+        config.addDefault("variables.isnewplayer.value", "&bWelcome to &servername%!");
+        config.addDefault("variables.isnewplayer.negValue", "&bNice to see you again!");
         
         plugin = Main.instance;
         config.options().copyDefaults(true);

@@ -1,6 +1,6 @@
 name: SexyMotd
 version: 1.2
-author: victor2748
+author: Qwertyness
 main: net.pixelizedmc.sexymotd.Main
 description: Create fancy and dynamic MOTDs easily!
 depend: [ProtocolLib]

@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,6 +17,7 @@ import net.pixelizedmc.sexymotd.Variable.Operator;
 
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.util.CachedServerIcon;
 
@@ -24,6 +26,17 @@ import ru.tehkode.permissions.bukkit.PermissionsEx;
 import com.comphenix.protocol.wrappers.WrappedGameProfile;
 
 public class Utils {
+	public static List<Variable> variables = new ArrayList<Variable>();
+	
+	public Utils() {
+		try {
+			for (String variableName : CM.config.getConfigurationSection("variables").getKeys(false)) {
+				Variable variable = new Variable(CM.config.getConfigurationSection("variables." + variableName));
+				variables.add(variable);
+			}
+		} catch(NullPointerException e) {}
+	}
+	
 	public static String convertIp(InetAddress address) {
 		address.getHostAddress();
 		List<Object> iplist = new ArrayList<>();
@@ -48,86 +61,127 @@ public class Utils {
 	
 	public static String generateMotd(String motd, String address) {
 		String output = motd;
-		String playerName = IpList.config.getString(address);
-		int onlinePlayers = Bukkit.getOnlinePlayers().length;
-		int maxPlayers = Bukkit.getMaxPlayers();
-		boolean newplayer = IpList.config.contains(address);
-		boolean banned = Bukkit.getOfflinePlayer(UUID.fromString(IpList.config.getString(address))).isBanned();
-		boolean whitelisted = Bukkit.getOfflinePlayer(UUID.fromString(IpList.config.getString(address))).isWhitelisted();
-		List<String> groupNames = null;
-		if (Bukkit.getServer().getPluginManager().getPlugin("PermissionsEx") != null) {
-			groupNames = PermissionsEx.getPermissionManager().getUser(IpList.config.getString(address)).getParentIdentifiers();
+		boolean newplayer = IpList.config.getString(address) == null;
+		String playerName = CM.DEFAULT_PLAYERNAME;
+		boolean banned = false;
+		boolean whitelisted = false;
+		List<String> groupNames = Arrays.asList("default");
+		if (!newplayer) {
+			playerName = Bukkit.getOfflinePlayer(UUID.fromString(IpList.config.getString(address))).getName();
+			banned = Bukkit.getOfflinePlayer(UUID.fromString(IpList.config.getString(address))).isBanned();
+			whitelisted = Bukkit.getOfflinePlayer(UUID.fromString(IpList.config.getString(address))).isWhitelisted();
+			groupNames = null;
+			if (Bukkit.getServer().getPluginManager().getPlugin("PermissionsEx") != null) {
+				groupNames = PermissionsEx.getPermissionManager().getUser(IpList.config.getString(address)).getParentIdentifiers();
+			}
 		}
 		
-		for (String variableName : CM.config.getConfigurationSection("variables").getKeys(false)) {
-			Variable variable = new Variable(CM.config.getConfigurationSection("variables." + variableName));
-			if (!motd.toLowerCase().contains(variable.name)) {
+		int onlinePlayers = Bukkit.getOnlinePlayers().length;
+		int maxPlayers = Bukkit.getMaxPlayers();
+		
+		for (Variable variable : variables) {
+			System.out.println("VariableIteration");
+			if (!motd.toLowerCase().contains(variable.name.toLowerCase())) {
 				continue;
 			}
-			if (variable.builtInVariable.contains("%playername%".toLowerCase())) {
-				if (variable.operator == Operator.EQUAL) {
-					if (playerName.equals(variable.condition)) {
-						output = output.replaceAll("(?i)" + variable.name, variable.value);
-					}
+			if (variable.builtInVariable.contains("playername".toLowerCase())) {
+				if (checkStringCondition(variable, playerName)) {
+					output = replaceCustomVariable(variable, output, false);
+				}
+				else {
+					output = replaceCustomVariable(variable, output, true);
 				}
 			}
-			else if (variable.builtInVariable.contains("%online_players%".toLowerCase())) {
+			else if (variable.builtInVariable.contains("online_players".toLowerCase())) {
 				if (checkNumericCondition(variable, onlinePlayers)) {
-					output = output.replaceAll("(?i)" + variable.name, variable.value);
+					output = replaceCustomVariable(variable, output, false);
+				}
+				else {
+					output = replaceCustomVariable(variable, output, true);
 				}
 			}
-			else if (variable.builtInVariable.contains("%max_players%".toLowerCase())) {
+			else if (variable.builtInVariable.contains("max_players".toLowerCase())) {
 				if (checkNumericCondition(variable, maxPlayers)) {
-					output = output.replaceAll("(?i)" + variable.name, variable.value);
+					output = replaceCustomVariable(variable, output, false);
+				}
+				else {
+					output = replaceCustomVariable(variable, output, true);
 				}
 			}
-			else if (variable.builtInVariable.contains("%newplayer%".toLowerCase())) {
+			else if (variable.builtInVariable.contains("newplayer".toLowerCase())) {
 				if (variable.operator == Operator.EQUAL) {
 					if ((variable.condition.equalsIgnoreCase("true") && newplayer) || (variable.condition.equalsIgnoreCase("false") && !newplayer)) {
-						output = output.replaceAll("(?i)" + variable.name, variable.value);
+						output = replaceCustomVariable(variable, output, false);
+					}
+					else {
+						output = replaceCustomVariable(variable, output, true);
 					}
 				}
 			}
-			else if (variable.builtInVariable.contains("%banned%".toLowerCase())) {
+			else if (variable.builtInVariable.contains("banned".toLowerCase())) {
 				if (variable.operator == Operator.EQUAL) {
 					if ((variable.condition.equalsIgnoreCase("true") && banned) || (variable.condition.equalsIgnoreCase("false") && !banned)) {
-						output = output.replaceAll("(?i)" + variable.name, variable.value);
+						output = replaceCustomVariable(variable, output, false);
+					}
+					else {
+						output = replaceCustomVariable(variable, output, true);
 					}
 				}
 			}
-			else if (variable.builtInVariable.contains("%whitelisted%".toLowerCase())) {
+			else if (variable.builtInVariable.contains("whitelisted".toLowerCase())) {
 				if (variable.operator == Operator.EQUAL) {
 					if ((variable.condition.equalsIgnoreCase("true") && whitelisted) || (variable.condition.equalsIgnoreCase("false") && !whitelisted)) {
-						output = output.replaceAll("(?i)" + variable.name, variable.value);
+						output = replaceCustomVariable(variable, output, false);
+					}
+					else {
+						output = replaceCustomVariable(variable, output, true);
 					}
 				}
 			}
-			else if (variable.builtInVariable.contains("%groupname%".toLowerCase())) {
+			else if (variable.builtInVariable.contains("groupname".toLowerCase())) {
 				if (groupNames == null) {
 					continue;
 				}
-				if (groupNames.contains(variable.condition)) {
-					output = output.replaceAll("(?i)" + variable.name, variable.value);
+				if (variable.operator == Operator.DOES_NOT_EQUAL) {
+					if (!groupNames.contains(variable.condition)) {
+						output = replaceCustomVariable(variable, output, false);
+					}
+					else {
+						output = replaceCustomVariable(variable, output, true);
+					}
 				}
+				else {
+					if (groupNames.contains(variable.condition)) {
+						output = replaceCustomVariable(variable, output, false);
+					}
+					else {
+						output = replaceCustomVariable(variable, output, true);
+					}
+				}
+				
 			}
 		}
 		
-		if (motd.toLowerCase().contains("%playername%".toLowerCase())) {
+		if (output.toLowerCase().contains("%playername%".toLowerCase())) {
 			if (IpList.config.contains(address)) {
 				output = output.replaceAll("(?i)%playername%", playerName);
 			} else {
 				output = output.replaceAll("(?i)%playername%", CM.DEFAULT_PLAYERNAME);
 			}
 		}
-		if (motd.toLowerCase().contains("%online_players%".toLowerCase())) {
+		if (output.toLowerCase().contains("%online_players%".toLowerCase())) {
 			output = output.replaceAll("(?i)%online_players%", Integer.toString(onlinePlayers));
 		}
-		if (motd.toLowerCase().contains("%max_players%".toLowerCase())) {
+		if (output.toLowerCase().contains("%max_players%".toLowerCase())) {
 			output = output.replaceAll("(?i)%max_players%", Integer.toString(maxPlayers));
 		}
-		if (motd.toLowerCase().contains("%groupname%".toLowerCase())) {
+		if (output.toLowerCase().contains("%groupname%".toLowerCase())) {
 			output = output.replaceAll("(?i)%groupname%", groupNames.get(0));
 		}
+		if (output.toLowerCase().contains("%servername%".toLowerCase())) {
+			output = output.replaceAll("(?i)%servername%", Bukkit.getServer().getName());
+		}
+		output = ChatColor.translateAlternateColorCodes('&', output);
 		return output;
 	}
 	
@@ -152,7 +206,7 @@ public class Utils {
 			String player = IpList.config.getString(ip);
 			BufferedImage icon = null;
 			try {
-				icon = ImageIO.read(new URL("https://minotar.net/helm/" + player + "/64.png"));
+				icon = ImageIO.read(new URL("https://minotar.net/helm/" + Bukkit.getOfflinePlayer(UUID.fromString(player)).getName() + "/64.png"));
 			} catch (IOException e) {
 				
 			}
@@ -176,7 +230,9 @@ public class Utils {
 						}
 					}
 					if (overlay.getWidth(null) == 64 && overlay.getHeight(null) == 64) {
-						icon.getGraphics().drawImage(overlay, 0, 0, null);
+						if (icon != null) {
+							icon.getGraphics().drawImage(overlay, 0, 0, null);
+						}
 					} else {
 						Main.logger.severe("THE OVERLAY IMAGE MUST BE 64x64!");
 						return Bukkit.getServerIcon();
@@ -201,8 +257,18 @@ public class Utils {
 				return true;
 			}
 		}
+		if (variable.operator == Operator.DOES_NOT_EQUAL) {
+			if (Integer.parseInt(variable.condition) != condition) {
+				return true;
+			}
+		}
 		else if (variable.operator == Operator.GREATER_THAN) {
 			if (condition > Integer.parseInt(variable.condition)) {
+				return true;
+			}
+		}
+		else if (variable.operator == Operator.GREATER_THAN_OR_EQUAL_TO) {
+			if (condition >= Integer.parseInt(variable.condition)) {
 				return true;
 			}
 		}
@@ -211,6 +277,35 @@ public class Utils {
 				return true;
 			}
 		}
+		else if (variable.operator == Operator.LESS_THAN_OR_EQUAL_TO) {
+			if (condition <= Integer.parseInt(variable.condition)) {
+				return true;
+			}
+		}
 		return false;
+	}
+	
+	public static boolean checkStringCondition(Variable variable, String condition) {
+		if (variable.operator == Operator.DOES_NOT_EQUAL) {
+			if (!condition.equalsIgnoreCase(variable.condition)) {
+				return true;
+			}
+		}
+		else {
+			if (condition.equalsIgnoreCase(variable.condition)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static String replaceCustomVariable(Variable variable, String output, boolean neg) {
+		if (!neg) {
+			output = output.replaceAll(variable.name, variable.value);
+		}
+		else {
+			output = output.replaceAll(variable.name, variable.negValue);
+		}
+		return output;
 	}
 }

@@ -87,6 +87,9 @@ public class Main extends JavaPlugin implements Listener {
 			checkUpdate();
 		}
 		
+		//Register Custom Variables
+		new Utils();
+		
 		// ProtocolLib
 		setupListener();
 	}
@@ -137,7 +140,7 @@ public class Main extends JavaPlugin implements Listener {
 	public void onJoin(PlayerJoinEvent e) {
 		Player player = e.getPlayer();
 		String ip = Utils.convertIp(player.getAddress().getAddress());
-		String name = player.getName();
+		String name = player.getUniqueId().toString();
 		IpList.config.set(ip, name);
 		IpList.save();
         if (player.hasPermission("sexymotd.update.notify") && updater_available) {
