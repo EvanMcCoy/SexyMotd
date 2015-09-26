@@ -1,7 +1,7 @@
 name: SexyMotd
-version: 1.2
+version: 1.4
 author: Qwertyness
-main: net.pixelizedmc.sexymotd.Main
+main: com.qwertyness.sexymotd.Main
 description: Create fancy and dynamic MOTDs easily!
 depend: [ProtocolLib]
 commands:
@@ -18,7 +18,6 @@ permissions:
       sexymotd.players.*: true
       sexymotd.avataricon: true
       sexymotd.info: true
-      sexymotd.update.*: true
       sexymotd.playermsg.*: true
       sexymotd.reload: true
       sexymotd.restart: true
@@ -31,13 +30,11 @@ permissions:
       sexymotd.players.*: true
       sexymotd.avataricon: true
       sexymotd.info: true
-      sexymotd.update.*: true
       sexymotd.playermsg.*: true
   sexymotd.motd.*:
     default: op
     children:
       sexymotd.motd.set: true
-      sexymotd.motd.see: true
       sexymotd.motd.toggle: true
   sexymotd.maxplayers.*:
     default: op
@@ -56,18 +53,10 @@ permissions:
       sexymotd.playermsg.add: true
       sexymotd.playermsg.remove: true
       sexymotd.playermsg.see: true
-  sexymotd.update.*:
-    default: op
-    children:
-      sexymotd.update.perform: true
-      sexymotd.update.check: true
-      sexymotd.update.notify: true
   sexymotd.motd.set:
     description: Permission to change the motd
   sexymotd.motd.toggle:
     description: Permission to toggle the motd
-  sexymotd.motd.see:
-    description: Permission to see the motd
   sexymotd.playermsg.toggle:
     description: Permission to toggle PlayerMessage
   sexymotd.playermsg.add:
@@ -76,12 +65,6 @@ permissions:
     description: Permission to remove lines from PlayerMessage
   sexymotd.playermsg.see:
     description: Permission to see PlayerMessage
-  sexymotd.update.perform:
-    description: Permission to perfrom an update
-  sexymotd.update.check:
-    description: Permission to check for updates
-  sexymotd.update.notify:
-    description: Permission to see update noitifications
   sexymotd.toggle:
     description: Permission to toggle the plugin
   sexymotd.maxplayers.toggle:

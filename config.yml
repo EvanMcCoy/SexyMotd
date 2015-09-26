@@ -1,0 +1,70 @@
+######################################################################################################################################
+## SexyMotd Configuration File                                                                                                      ##
+## Learn more about how to set up SexyMotd at http://qwertyness.com/index.php/portfolio/sexymotd                                    ##
+##                                                                                                                                  ##
+## When updating to a new version where the configuration file changes, you must reset the file to prevent errors.                  ##
+## To do this:                                                                                                                      ##
+## 1. Stop the server.                                                                                                              ##
+## 2. Backup the configuration file and delete it from the plugin folder.                                                           ##
+## 3. Restart the server.                                                                                                           ##
+## 4. Copy and paste the desired settings back into the newly generated file. (As long as that section's syntax hasn't changed)     ##
+######################################################################################################################################
+
+# Add a new sub-entry for each separate Motd you want in the random pool.
+# Examples below
+motds:
+  - 'Test motd.'
+  - 'Hello, motd1;&4Color Test &rw/reset code'
+  - 'Hello, motd2;Variable Test %servername% %onlineplayers%'
+  - 'Hello, motd3;Variable Test %playername%'
+  - '%playername% %servername% %largeplayercount%'
+  - '%newplayer%, %maxplayers%, %onlineplayers%, %ip%'
+
+# The value to show as the maximum player limit to the server. DOES NOT CHANGE THE ACTUAL LIMIT.
+maxPlayers:
+  enabled: true
+  maxPlayers: 503
+
+# The value to show as the amount of online players. A random entry is chosen from the list on each ping.
+playerCount:
+  enabled: true
+  playerCount:
+  - 10
+  - -1
+  - 47
+
+icon:
+  # Sets the icon to the pinging player's head.
+  # Using the avatar image could potentially have a drastic effect on response speed, depending on connection.  If your server has a slow connection, this is not recommended.
+  enableAvatarIcon: true
+  # Adds an overlay to the head image. Can be used independently from the avatar icon.
+  enableOverlayImage: false
+  imagePath: 'C:/Users/BillyBobJoe/Pictures/billyBobJoeIcon.jpg'
+
+ #The text to display when hovering over the server in the server list.
+playerMessage:
+  enabled: true
+  playerMessage:
+  - 'Hello, line 1;Variable Test %servername% %playername%'
+  - 'Hello, line 2;&7Color &aTest &rw/reset code'
+
+# Replaces the online and max player counts with custom text.  Color codes and variables work with this.
+fakeVersion:
+  enabled: false
+  fakeVersion: 'Hell yeah! Players: %onlineplayers%'
+
+# The default name to display in place of %playername% when the ping's IP address isn't logged.
+defaultPlayerName: 'New Player'
+
+# Whether or not to log when a player pings and the connection is closed.
+pingLogging: true
+
+# Create custom variables here. Custom variables can be used like any of the default SexyMotdBungee variables.
+# MAKE SURE to place apostrophes around all components of the custom variable as they are all read as String objects from the configuration.
+variables:
+  largeplayercount:
+    variable: 'onlineplayers'
+    operator: '>'
+    condition: '10'
+    value: '&aIts sure getting popular around %servername%!'
+    negValue: '&cGotta step up that recruiting skill! %servername%'

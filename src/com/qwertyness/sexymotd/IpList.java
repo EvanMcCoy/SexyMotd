@@ -1,4 +1,4 @@
-package net.pixelizedmc.sexymotd;
+package com.qwertyness.sexymotd;
 
 import java.io.File;
 import java.io.IOException;
